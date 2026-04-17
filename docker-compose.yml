@@ -1,0 +1,29 @@
+# ============================================================
+# docker-compose.yml — IDSS Pipeline (dev mode)
+# Chạy: docker-compose up
+# ============================================================
+version: "3.9"
+
+services:
+  pipeline:
+    build: .
+    container_name: idss-pipeline
+    volumes:
+      # Mount data + logs ra ngoài để persist qua lần chạy
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Thêm ANTHROPIC_API_KEY nếu muốn dùng Claude API
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    command: python main_pipeline.py
+
+  # --- Optional: Streamlit dashboard ---
+  # dashboard:
+  #   build: .
+  #   container_name: idss-dashboard
+  #   ports:
+  #     - "8501:8501"
+  #   volumes:
+  #     - ./data:/app/data
+  #   command: streamlit run web_dashboard/app.py --server.port=8501 --server.address=0.0.0.0

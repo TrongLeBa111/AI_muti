@@ -1,0 +1,15 @@
+# .dockerignore — Loại trừ files không cần trong Docker image
+.git
+.idea
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+data/
+logs/
+*.md
+requirements-dev.txt
+*.faiss
+*.pkl
