@@ -25,6 +25,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 # --- Copy source code ---
 COPY src/          ./src/
+COPY tests/        ./tests/
 COPY main_pipeline.py .
 COPY .env.example  .
 
