@@ -1,408 +1,111 @@
-# Intelligent Decision Support System (IDSS) - Multi-Platform TS-RAG Architecture
+# Intelligent Decision Support System (IDSS) - Lightweight TS-RAG Architecture
 
-**Hệ thống Hỗ trợ Ra Quyết định Thông minh dựa trên TS-RAG cho Doanh nghiệp Bán lẻ và Logistics**
+**Hệ thống Hỗ trợ Ra Quyết định Thông minh dựa trên Time-Series RAG dành cho Doanh nghiệp Bán lẻ và Logistics**
 
 ![Status](https://img.shields.io/badge/Status-Active%20Development-brightgreen)
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
 ## 📋 Tổng Quan Dự Án
 
-IDSS là một hệ thống AI đa nền tảng kết hợp **Time-Series RAG (TS-RAG)** để hỗ trợ các nhà quản lý doanh nghiệp đưa ra quyết định dựa trên dữ liệu thực tế. Thay vì chỉ cung cấp các con số dự báo "vô hồn", hệ thống cung cấp **giải thích logic (Explainable AI)** và các khuyến nghị hành động cụ thể.
+IDSS là một hệ thống AI hỗ trợ ra quyết định kinh doanh được thiết kế theo hướng **tối ưu hóa (lightweight)**. Khắc phục nhược điểm của các hệ thống AI phụ thuộc quá nhiều vào LLM lớn và cồng kềnh, hệ thống này được xây dựng để hoạt động **off-line hoàn toàn**, tối ưu bộ nhớ bằng cách kết hợp **Time-Series RAG (TS-RAG)** với **Rule-Based Expert System**.
 
-### 🎯 Mục tiêu Chính
+Hệ thống cho phép các nhà quản lý doanh nghiệp đưa ra quyết định dự báo nhanh, không chỉ hiển thị các con số trực quan thông qua Web Dashboard, mà còn cung cấp **giải thích logic rõ ràng (Explainable AI - XAI)** và các khuyến nghị hành động cụ thể cho từng loại sự kiện (tăng trưởng, rủi ro, dự trữ tồn kho).
 
-- ✅ Phân tích dữ liệu bán hàng/tồn kho theo chuỗi thời gian
-- ✅ Truy xuất mẫu hình tương tự trong lịch sử + ngữ cảnh bên ngoài
-- ✅ Tạo báo cáo phân tích bằng ngôn ngữ tự nhiên với Explainable AI
-- ✅ Tích hợp multi-platform: **Slack**, **Microsoft Teams**, **Web Dashboard**
-- ✅ Tuân thủ Luật AI Việt Nam 2025 (Logging, Risk Assessment)
+### 🎯 Mục tiêu & Tính năng Chính
 
-### 📊 Phạm vi MVP (Minimum Viable Product)
-
-| Yêu cầu | Mô tả | Trạng thái |
-|---------|-------|-----------|
-| **Dữ liệu** | Dataset mẫu (Superstore) + giả lập sự kiện | ✅ Phase 1 |
-| **TS-RAG Engine** | Truy xuất mẫu thời gian + embedding | ✅ Phase 2 |
-| **Bot Slack** | Chatbot tương tác trên Slack | ✅ Phase 2 |
-| **Web Dashboard** | Streamlit dashboard hiển thị phân tích | ✅ Phase 3 |
-| **Logging & Compliance** | Activity logs cho tuân thủ pháp lý | ✅ Phase 3 |
+- ✅ **Phân tích Chuỗi Thời Gian**: Phân tích dữ liệu bán hàng, phát hiện xu hướng và dị thường tự động thông qua Z-score anomaly detection.
+- ✅ **Offline TS-RAG Engine**: Truy xuất mẫu hình lịch sử tương tự. Hệ thống tự động chuyển đổi Time-series thành Dữ liệu Text phân tích (Semantic Text) và sử dụng thuật toán nhúng TF-IDF/N-gram hash rút gọn để index vào **FAISS**. Không yêu cầu GPU hay API trả phí.
+- ✅ **Expert System Reasoning**: Tập luật (Rule-based engine) sinh báo cáo ngôn ngữ tự nhiên, cảnh báo rủi ro dựa trên dữ liệu RAG truy xuất được, đảm bảo độ chính xác (deterministic) và chi phí thấp.
+- ✅ **Web Dashboard Trực Quan**: Giao diện UI/UX hiện đại bằng Streamlit với custom CSS, hỗ trợ điều hướng Side-bar và Top-navbar, filter linh hoạt.
+- ✅ **Logging & Compliance (Tuân thủ)**: Tuân thủ dự thảo Luật AI Việt Nam 2025. Tính năng ghi nhật ký hoạt động rẽ nhánh đầy đủ, hỗ trợ Audit và đánh giá rủi ro an toàn AI.
 
 ---
 
-## 🏗️ Cấu Trúc Dự Án
+## 🏗️ Kiến trúc Modular & Tối ưu hóa
 
-```
-intelligent-decision-support-system/
-│
-├── README.md                          # Tài liệu chính
-├── requirements.txt                   # Python dependencies
-├── .env.example                       # Mẫu biến môi trường
-├── pyproject.toml                     # Cấu hình project
-│
-├── data/
-│   ├── raw/
-│   │   └── superstore_sales.csv       # Dataset gốc (từ Kaggle)
-│   ├── processed/
-│   │   ├── timeseries_features.pkl    # Features đã trích xuất
-│   │   └── events_context.json        # Sự kiện ngữ cảnh (giả lập)
-│   └── vector_db/
-│       └── faiss_index.bin            # Vector database (FAISS)
-│
-├── src/
-│   ├── __init__.py
-│   │
-│   ├── data_pipeline/
-│   │   ├── __init__.py
-│   │   ├── loader.py                  # Load dữ liệu từ CSV
-│   │   ├── preprocessor.py            # Xử lý chuỗi thời gian (TSFresh)
-│   │   └── feature_extractor.py       # Trích xuất đặc trưng
-│   │
-│   ├── ts_rag_engine/
-│   │   ├── __init__.py
-│   │   ├── embeddings.py              # Embedding: OpenAI hoặc mã nguồn mở
-│   │   ├── vector_store.py            # Quản lý FAISS database
-│   │   ├── retriever.py               # Truy xuất mẫu tương tự
-│   │   ├── context_augmentor.py       # Làm giàu ngữ cảnh bên ngoài
-│   │   └── llm_reasoner.py            # LLM suy luận + giải thích
-│   │
-│   ├── agents/
-│   │   ├── __init__.py
-│   │   ├── supervisor_agent.py        # Supervisor điều phối công cụ
-│   │   ├── forecast_agent.py          # Agent chuyên biệt dự báo
-│   │   └── anomaly_agent.py           # Agent phát hiện dị thường
-│   │
-│   ├── integrations/
-│   │   ├── __init__.py
-│   │   ├── slack_bot.py               # Bot Slack integration
-│   │   ├── teams_bot.py               # Bot Teams integration (để sau)
-│   │   └── messaging_gateway.py       # Unified messaging API
-│   │
-│   ├── compliance/
-│   │   ├── __init__.py
-│   │   ├── activity_logger.py         # Ghi nhật ký hoạt động
-│   │   ├── risk_assessor.py           # Đánh giá rủi ro theo Luật AI 2025
-│   │   └── explainability.py          # Giải thích quyết định
-│   │
-│   └── utils/
-│       ├── __init__.py
-│       ├── config.py                  # Cấu hình (từ .env)
-│       ├── logger.py                  # Logging utility
-│       └── helpers.py                 # Hàm tiện ích
-│
-├── notebooks/
-│   ├── 01_eda_and_preprocessing.ipynb # EDA và tiền xử lý
-│   ├── 02_ts_pattern_discovery.ipynb  # Khám phá mẫu chuỗi thời gian
-│   └── 03_rag_pipeline_testing.ipynb  # Kiểm thử pipeline TS-RAG
-│
-├── tests/
-│   ├── __init__.py
-│   ├── test_data_pipeline.py          # Unit tests
-│   ├── test_ts_rag_engine.py          # Test TS-RAG
-│   └── test_agents.py                 # Test agents
-│
-├── web_dashboard/
-│   ├── app.py                         # Streamlit main app
-│   ├── pages/
-│   │   ├── home.py                    # Trang chủ
-│   │   ├── forecast_analysis.py       # Dự báo
-│   │   └── anomaly_detection.py       # Phát hiện dị thường
-│   └── config/
-│       └── streamlit_config.toml      # Cấu hình Streamlit
-│
-├── docker/
-│   ├── Dockerfile                     # Container cho API
-│   └── docker-compose.yml             # Multi-container setup
-│
-└── docs/
-    ├── ARCHITECTURE.md                # Kiến trúc hệ thống chi tiết
-    ├── API_SPECIFICATION.md           # Spec API
-    ├── COMPLIANCE_CHECKLIST.md        # Tuân thủ Luật AI 2025
-    └── DEPLOYMENT_GUIDE.md            # Hướng dẫn triển khai
-```
+Dự án đã được **Tái cấu trúc (Refactoring)** theo chuẩn Enterprise, đồng thời tập trung loại bỏ dư thừa tài nguyên phần cứng:
+
+1. **Lightweight Backend Layer**:
+   - Chuyển đổi từ mô hình sử dụng Langchain/LlamaIndex, OpenAI (~2GB+ space/RAM) xuống cấu trúc Lightweight Python tự thiết kế (chỉ khoảng ~350MB).
+   - Tự xây dựng Embedding Engine offline.
+
+2. **Dữ liệu & Pipeline**:
+   - Tích hợp luồng sinh dữ liệu giả lập (`event_simulator.py`) cho tập dataset Superstore (2014-2017).
+   - End-to-end từ bước đọc dữ liệu, làm sạch, tìm kiếm vector, tới lưu file kết quả.
+
+3. **Cấu trúc Thư mục (`src/`)**:
+   - `data_pipeline/`: Module nạp, xử lý và mô phỏng sự kiện.
+   - `ts_rag_engine/`: Module lõi về xử lý Embedding, Vector retrieval (FAISS) và Agent Suy luận.
+   - `agents/`: Phân luồng điều phối (SupervisorAgent, ForecastAgent, AnomalyAgent).
+   - `compliance/`: Log, giải thích quyết định của AI hỗ trợ kiểm toán (Audit logs).
 
 ---
 
-## 🚀 Lộ Trình Phát Triển (Roadmap)
+## 🚀 Hướng Dẫn Cài Đặt & Chạy Khởi Động
 
-### **Phase 1: Chuẩn bị Dữ liệu & Xây dựng Pipeline (Tuần 1-2)**
-
-**Mục tiêu:** Tạo foundation dữ liệu chất lượng cao
+### 1. Setup Môi trường
+Hệ thống sử dụng Python 3.11+. Tránh cài đặt tại các đường dẫn có khoảng trắng/kí tự đặc biệt.
 
 ```bash
-# 1.1 Setup môi trường
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# Clone source code
+git clone <url-to-your-repo>
+cd IDSS-AI
+
+# Phân tách môi trường ảo (Virtual Environment)
+python -m venv .venv
+
+# Active môi trường:
+# Trên Windows cmd/powershell:
+.venv\Scripts\activate
+# Trên Linux/Mac:
+# source .venv/bin/activate
+
+# Cài đặt thư viện yêu cầu đã được tối ưu
 pip install -r requirements.txt
-
-# 1.2 Tải dataset từ Kaggle
-# Link: https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting-data
-# Đặt vào: data/raw/superstore_sales.csv
-
-# 1.3 Chạy tiền xử lý dữ liệu
-python src/data_pipeline/preprocessor.py --input data/raw/superstore_sales.csv
-
-# 1.4 Tạo dữ liệu giả lập sự kiện
-python src/data_pipeline/event_simulator.py --output data/processed/events_context.json
 ```
 
-**Deliverable:**
-- ✅ File `superstore_sales.csv` đã xử lý (cleaned + normalized)
-- ✅ File `timeseries_features.pkl` (đặc trưng đã trích xuất)
-- ✅ File `events_context.json` (sự kiện giả lập: "Tháng 12 có Tết", "Đối thủ giảm giá 30%")
-
-**Kỹ năng cần:** Pandas, NumPy, TSFresh
-
----
-
-### **Phase 2: Xây dựng TS-RAG Engine (Tuần 3-5)**
-
-**Mục tiêu:** Tạo "trái tim" AI của hệ thống
+### 2. Chạy Data Pipeline & Cập nhật Index FAISS
+Quá trình này sẽ giả lập, làm sạch dữ liệu, tạo Vector DB cục bộ, và chạy thử qua một luồng pipeline phân tích hoàn chỉnh:
 
 ```bash
-# 2.1 Tạo embeddings và Vector DB
-python src/ts_rag_engine/vector_store.py --action create_index
-
-# 2.2 Kiểm thử Retriever (truy xuất mẫu tương tự)
-python -m pytest tests/test_ts_rag_engine.py -v
-
-# 2.3 Kiểm thử LLM Reasoner (suy luận)
-python src/ts_rag_engine/llm_reasoner.py --test
+python main_pipeline.py
 ```
+*Kết quả:* Các thư mục dữ liệu `data/` (data/processed, data/vector_db) và `logs/` sẽ được tự động cập nhật để chuẩn bị cho Dashboard.
 
-**Thành phần chính:**
-
-1. **Embeddings Layer:**
-   - Sử dụng OpenAI Embeddings (nếu có budget) hoặc `sentence-transformers` (mã nguồn mở)
-   - Chuyển các điểm dữ liệu thành vector không gian
-
-2. **Retriever:**
-   ```python
-   # Ví dụ: Tìm mẫu thời gian tương tự
-   query_pattern = extract_pattern(current_sales_data)
-   similar_patterns = vector_db.search(query_pattern, top_k=3)
-   # Returns: [(timestamp1, similarity_score1), ...]
-   ```
-
-3. **Context Augmentor:**
-   ```python
-   # Kết hợp mẫu + ngữ cảnh
-   context = {
-       "historical_patterns": similar_patterns,
-       "external_events": events_context[timestamp],
-       "competitor_actions": market_intel
-   }
-   ```
-
-4. **LLM Reasoner:**
-   ```python
-   # Sử dụng GPT-4 hoặc LLaMA để viết báo cáo
-   analysis = llm.reason(context)
-   # Output: "Doanh số dự báo ↑15% vì: 1) Mẫu tăng tương tự năm ngoái, 2) Sự kiện triển lãm sắp diễn ra"
-   ```
-
-**Deliverable:**
-- ✅ FAISS index đã huấn luyện
-- ✅ Unit tests pass > 85%
-- ✅ Demo Jupyter notebook: `notebooks/03_rag_pipeline_testing.ipynb`
-
-**Kỹ năng cần:** LangChain, LLaMA Index, FAISS, Prompt Engineering
-
----
-
-### **Phase 3: Tích hợp Multi-Platform (Tuần 6-7)**
-
-**Mục tiêu:** Đưa hệ thống vào môi trường công việc thực tế
-
-#### **3a. Slack Bot**
-```bash
-python src/integrations/slack_bot.py --token $SLACK_BOT_TOKEN
-```
-
-**Ví dụ Slack interaction:**
-```
-User: @idss-bot Doanh số tháng này có bình thường không?
-
-Bot: 📊 Phân tích Doanh số Tháng 1:
-   • Thực tế: 2.5B VNĐ
-   • Dự báo: 2.3B VNĐ ↑ 8.7%
-   
-   🔍 Lý do:
-   1. Mẫu tăng tương tự Tết 2024
-   2. Độ độc lập sản phẩm + 15%
-   
-   💡 Khuyến nghị:
-   [Tăng lượng nhập kho] [Xem chi tiết trên Dashboard]
-```
-
-#### **3b. Web Dashboard (Streamlit)**
-```bash
-streamlit run web_dashboard/app.py
-```
-
-**Giao diện Dashboard:**
-- Biểu đồ doanh số (Interactive Plotly)
-- Bảng phân tích chi tiết
-- Nút "Giải thích lại" để xem lý do
-- Export báo cáo PDF
-
-**Deliverable:**
-- ✅ Slack bot hoạt động trên workspace test
-- ✅ Web dashboard có 3 trang: Home + Forecast + Anomaly
-- ✅ Demo video (30 giây) trên YouTube
-
-**Kỹ năng cần:** Slack API, Streamlit, Plotly
-
----
-
-### **Phase 4: Compliance & Packaging (Tuần 8)**
-
-**Mục tiêu:** Làm cho dự án chuyên nghiệp cho portfolio
+### 3. Mở Web Dashboard Trực Quan
+Ứng dụng giao diện được chạy trên Streamlit.
 
 ```bash
-# 4.1 Tạo Activity Logs
-python src/compliance/activity_logger.py --generate_report
-
-# 4.2 Risk Assessment theo Luật AI 2025
-python src/compliance/risk_assessor.py --output compliance_report.md
-
-# 4.3 Dockerize ứng dụng
-docker-compose up -d
+streamlit run web_dashboard/app.py --server.port 8501
 ```
 
-**Deliverable:**
-- ✅ `COMPLIANCE_CHECKLIST.md` (tự đánh giá rủi ro)
-- ✅ `activity_logs.json` (nhật ký hoạt động)
-- ✅ Dockerfile + docker-compose.yml
-- ✅ GitHub repo sạch với Good Commits
+Mở trình duyệt truy cập `http://localhost:8501` để trải nghiệm các phân hệ:
+- **🏠 Tổng quan**: Tổng quan dữ liệu có bộ lọc tùy biến liên kết chéo.
+- **📈 Phân tích Dự báo**: Giao diện chọn kịch bản để kích hoạt Agent TS-RAG.
+- **🚨 Phát hiện Bất thường**: Đánh giá biến động quá mức thông qua thuật toán Z-score.
+- **📋 Nhật ký Kiểm toán**: Report Compliance Audit track lại toàn bộ các decision của AI.
 
 ---
 
-## 💻 Bắt Đầu Nhanh (Quick Start)
+## 🐳 Khởi chạy với Docker
 
-### Prerequisites
-- Python 3.10+
-- Git
-- (Tuỳ chọn) API key: OpenAI hoặc Hugging Face
-- (Tuỳ chọn) Slack workspace test
-
-### Setup
+Dự án đã đóng gói `Dockerfile` sẵn sàng triển khai dễ dàng:
 
 ```bash
-# 1. Clone repo
-git clone https://github.com/yourname/intelligent-decision-support-system.git
-cd intelligent-decision-support-system
-
-# 2. Tạo virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 3. Cài đặt dependencies
-pip install -r requirements.txt
-
-# 4. Setup .env file
-cp .env.example .env
-# Chỉnh sửa .env với API keys của bạn
-
-# 5. Tải dataset
-wget https://www.kaggle.com/api/v1/datasets/download/rohitsahoo/sales-forecasting-data -O data/raw/superstore_sales.csv
-
-# 6. Chạy pipeline dữ liệu
-python src/data_pipeline/preprocessor.py
-
-# 7. Khởi động Streamlit dashboard
-streamlit run web_dashboard/app.py
+docker build -t idss-pipeline .
+# Mount volume lưu kết quả và chạy:
+docker run --rm -v ${PWD}/data:/app/data idss-pipeline
 ```
 
-**Output:** Dashboard sẽ mở tại `http://localhost:8501`
-
 ---
 
-## 🛠️ Tech Stack
+## 📝 Đóng góp & Quản lý Git
 
-| Lớp | Công nghệ |
-|-----|-----------|
-| **Data Processing** | Pandas, NumPy, TSFresh, Scikit-learn |
-| **Vector DB** | FAISS, Pinecone (tuỳ chọn) |
-| **AI/ML** | LangChain, LLaMA Index, OpenAI API / LLaMA |
-| **Bot Integration** | Slack SDK, python-slackclient |
-| **Web Framework** | Streamlit, FastAPI (for API) |
-| **Database** | SQLite (prototyping), PostgreSQL (production) |
-| **Logging** | Python logging, Datadog (tuỳ chọn) |
-| **Deployment** | Docker, Docker Compose, AWS/GCP (tuỳ chọn) |
+- Dự án sử dụng mô hình Git Branch workflows. `main` cho Production code và phân nhánh xử lý chức năng từ branch `dev` hoặc `feature/*`.
+- Tuân thủ PEP-8.
 
----
-
-## 📈 Kỳ Vọng Kết Quả
-
-| Chỉ số | Mục tiêu | Mô tả |
-|-------|---------|-------|
-| **Accuracy** | > 80% | Dự báo doanh số chính xác trong ±15% |
-| **Response Time** | < 3s | Slack bot trả lời trong < 3 giây |
-| **Code Coverage** | > 70% | Unit test bao phủ chính core logic |
-| **Documentation** | 100% | Tất cả function có docstring |
-| **Explainability** | > 90% | > 90% quyết định AI có giải thích rõ ràng |
-
----
-
-## 📚 Tài liệu Bổ sung
-
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Kiến trúc hệ thống chi tiết
-- **[API_SPECIFICATION.md](docs/API_SPECIFICATION.md)** - Spec API endpoint
-- **[COMPLIANCE_CHECKLIST.md](docs/COMPLIANCE_CHECKLIST.md)** - Tuân thủ Luật AI Việt Nam 2025
-- **[DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)** - Triển khai production
-
----
-
-## 🔐 Bảo Mật & Tuân Thủ Pháp Lý
-
-Dự án tuân thủ **Luật Trí tuệ nhân tạo Việt Nam (Luật số 134/2025/QH15)**:
-
-- ✅ **Activity Logging:** Ghi tất cả quyết định AI để truy vết
-- ✅ **Explainability:** Mỗi quyết định đều có giải thích logic
-- ✅ **Risk Assessment:** Tự phân loại mức rủi ro (Low)
-- ✅ **Data Privacy:** Không lưu dữ liệu cá nhân không cần thiết
-
-Xem chi tiết: [COMPLIANCE_CHECKLIST.md](docs/COMPLIANCE_CHECKLIST.md)
-
----
-
-## 👥 Đóng Góp & Support
-
-**Hướng dẫn phát triển:**
-1. Fork repo
-2. Tạo branch: `git checkout -b feature/your-feature`
-3. Commit: `git commit -m "Add your feature"`
-4. Push: `git push origin feature/your-feature`
-5. Tạo Pull Request
-
----
-
-## 📄 License
-
-MIT License - Xem [LICENSE](LICENSE) để chi tiết
-
----
-
-## 🎯 Liên Hệ & Tư Vấn
-
-- **Issues:** Mở GitHub Issues cho bug reports
-- **Discussions:** Dùng Discussions cho ý tưởng mới
-- **Email:** your-email@example.com
-
----
-
-## 🙏 Cảm Ơn
-
-Dự án này được phát triển dựa trên:
-- Luật AI Việt Nam 2025
-- Thống kê thị trường AI Việt Nam (WIN World AI Index)
-- Best practices từ cộng đồng Open Source
-
----
-
-**Happy Building! 🚀**
-
-*Lần cập nhật cuối cùng: April 2026*
+**Tác giả & Đóng góp:** [Your Name / Team]  
+**Phiên bản hiện tại:** v1.0.0 (Cập nhật T04/2026)

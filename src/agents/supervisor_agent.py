@@ -44,7 +44,7 @@ INTENT_PATTERNS = {
 
 CATEGORY_PATTERNS = {
     "Furniture": [r"\bfurnitur\b", r"\bchair\b", r"\btable\b", r"\bdesk\b", r"\bnội thất\b"],
-    "Technology": [r"\btech\b", r"\bphone\b", r"\blaptop\b", r"\belectronic\b", r"\bcông nghệ\b"],
+    "Technology": [r"\btech\b", r"\btechnology\b", r"\bphone\b", r"\blaptop\b", r"\belectronic\b", r"\bcông nghệ\b"],
     "Office Supplies": [r"\boffice\b", r"\bsuppl\b", r"\bpaper\b", r"\bbinder\b", r"\bvăn phòng\b"],
 }
 
@@ -120,8 +120,8 @@ class SupervisorAgent:
         if year_match:
             year = int(year_match.group(1))
 
-        # Month: name or number
-        for name, num in MONTH_MAP.items():
+        # Month: name or number — sort by length desc để "tháng 11" match trước "tháng 1"
+        for name, num in sorted(MONTH_MAP.items(), key=lambda x: -len(x[0])):
             if name in q:
                 month = num
                 break

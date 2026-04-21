@@ -24,8 +24,9 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
 # --- Copy source code ---
-COPY src/          ./src/
-COPY tests/        ./tests/
+COPY src/              ./src/
+COPY tests/            ./tests/
+COPY web_dashboard/    ./web_dashboard/
 COPY main_pipeline.py .
 COPY .env.example  .
 

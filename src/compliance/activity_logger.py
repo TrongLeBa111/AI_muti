@@ -4,7 +4,7 @@ Logs all AI decisions for audit trail (Luật AI 2025 compliance).
 Each entry is a JSON line in logs/audit.jsonl.
 """
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -28,7 +28,7 @@ class ActivityLogger:
         reasoning_type: str = "rule_based",
     ) -> None:
         entry = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             "user_id": user_id,
             "action": action,
             "input": input_query,

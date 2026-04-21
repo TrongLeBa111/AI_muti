@@ -1,29 +1,39 @@
-# ============================================================
-# docker-compose.yml — IDSS Pipeline (dev mode)
-# Chạy: docker-compose up
-# ============================================================
-version: "3.9"
-
+# IDSS — docker-compose
 services:
+  dashboard:
+    build: .
+    command: streamlit run web_dashboard/app.py --server.port=8501 --server.address=0.0.0.0
+    container_name: idss-dashboard
+    depends_on:
+    - pipeline
+    environment:
+    - PYTHONUNBUFFERED=1
+    ports:
+    - 8501:8501
+    volumes:
+    - ./data:/app/data
+    - ./logs:/app/logs
   pipeline:
     build: .
-    container_name: idss-pipeline
-    volumes:
-      # Mount data + logs ra ngoài để persist qua lần chạy
-      - ./data:/app/data
-      - ./logs:/app/logs
-    environment:
-      - PYTHONUNBUFFERED=1
-      # Thêm ANTHROPIC_API_KEY nếu muốn dùng Claude API
-      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     command: python main_pipeline.py
-
-  # --- Optional: Streamlit dashboard ---
-  # dashboard:
-  #   build: .
-  #   container_name: idss-dashboard
-  #   ports:
-  #     - "8501:8501"
-  #   volumes:
-  #     - ./data:/app/data
-  #   command: streamlit run web_dashboard/app.py --server.port=8501 --server.address=0.0.0.0
+    container_name: idss-pipeline
+    environment:
+    - PYTHONUNBUFFERED=1
+    volumes:
+    - ./data:/app/data
+    - ./logs:/app/logs
+  slack-bot:
+    build: .
+    command: python src/integrations/slack_bot.py
+    container_name: idss-slack-bot
+    environment:
+    - PYTHONUNBUFFERED=1
+    - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+    - SLACK_SIGNING_SECRET=${SLACK_SIGNING_SECRET}
+    - SLACK_APP_TOKEN=${SLACK_APP_TOKEN}
+    profiles:
+    - slack
+    volumes:
+    - ./data:/app/data
+    - ./logs:/app/logs
+version: '3.9'
