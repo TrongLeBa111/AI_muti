@@ -107,5 +107,5 @@ docker run --rm -v ${PWD}/data:/app/data idss-pipeline
 - Dự án sử dụng mô hình Git Branch workflows. `main` cho Production code và phân nhánh xử lý chức năng từ branch `dev` hoặc `feature/*`.
 - Tuân thủ PEP-8.
 
-**Tác giả & Đóng góp:** [Your Name / Team]  
+**Tác giả & Đóng góp:**   
 **Phiên bản hiện tại:** v1.0.0 (Cập nhật T04/2026)
